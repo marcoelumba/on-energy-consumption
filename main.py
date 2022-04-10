@@ -1,6 +1,7 @@
 from dash import Dash, dcc, html, Input, Output
 import plotly.express as px
 import pandas as pd
+import numpy as np
 from urllib.request import urlopen
 import urllib.request, json
 
@@ -9,6 +10,7 @@ path_datasets = 'https://raw.githubusercontent.com/marcoelumba/on-energy-consump
 with urllib.request.urlopen(path_datasets + 'countries.geojson') as url:
     data_geo = json.loads(url.read().decode())
 
+# Data Connections
 df = pd.read_csv(path_datasets + 'global-energy-use.csv')
 df_e = pd.read_csv(path_datasets + 'fossilfueldata.csv')
 df_c = pd.read_csv(path_datasets + 'per-capita-energy-use.csv')
@@ -17,17 +19,19 @@ df_c = pd.read_csv(path_datasets + 'per-capita-energy-use.csv')
 for feature in data_geo['features']:
     feature['id'] = feature['properties']['ADMIN']
 
-continent_list = set(df.Continent)
-continent_list.update(continent_list, ['World'])
-Country = set(df.Country)
+
+# Filter lists
+continent_list = np.concatenate((df.Continent.unique(), 'World'), axis=None)
+Country = df.Country.unique()
+
 
 fig_sunburst = px.sunburst(df_e[(df_e["Category"].str.contains("Consumption")) & (df_e["Usage"] > 0.0) & (df_e["Year"] == 2020)],
                   path=['FossilType', 'Continent', 'Country'],
                   values='Usage')
-fig_sunburst = fig_sunburst.update_layout({'margin' : dict(t=0, l=0, r=0, b=10),'font_color':'#363535'})
-fig_line = px.line(df_c, x="Year", y="Energy per capita (kWh)", color='Entity')
-fig_line = fig_line.update_layout({'margin' : dict(t=0, l=0, r=0, b=10),'font_color':'#363535',
-                                   'paper_bgcolor': 'rgba(0,0,0,0)', 'plot_bgcolor': 'rgba(0,0,0,0)'})
+fig_sunburst = fig_sunburst.update_layout({'margin': dict(t=0, l=0, r=0, b=10),'font_color':'#363535',
+                                           'paper_bgcolor': 'rgba(0,0,0,0)', 'plot_bgcolor': 'rgba(0,0,0,0)'})
+
+
 app = Dash(__name__)
 
 app.layout = html.Div([
@@ -49,7 +53,8 @@ app.layout = html.Div([
             html.Br(), html.Br(),html.Br(),html.Br(),
             html.Div([
                         dcc.Graph(id="global-map"),
-                    ], style={'position': 'absolute', 'width': '80%', 'right': '5%', 'font-size':'12px'},  className='map')
+                    ], style={'position': 'absolute', 'width': '80%', 'right': '5%', 'font-size':'12px', 'float': 'right',
+                              'paper_bgcolor': 'rgba(0,0,0,0)', 'plot_bgcolor': 'rgba(0,0,0,0)'},  className='map')
 
         ], style={'position': 'relative', 'width': '100%', 'top': '0px'}, className='top_div'),
         #END OF TOP
@@ -78,12 +83,27 @@ app.layout = html.Div([
         #BOT
         html.Div([
             html.Div([
-                    dcc.Graph(figure=fig_line),
-            ], style={'position': 'relative', 'width': '80%', 'height': '500', 'bottom': '1%', 'opacity':'100%'}, className='line_chart_div')
+                html.Div([
+                    dcc.ConfirmDialog(id='line-alert',
+                                      message="Country selected should  not be greater then 5. \n Please remove the 6th and + country in the list.",)]),
+                dcc.Dropdown(
+                            id="multi-dropdown",
+                            options=[{'label': i, 'value': i} for i in df_c.Entity.unique()],
+                            value=['Portugal','Singapore','China','India'],
+                            multi=True
+                        )
+                    ], style={'position': 'relative', 'width': '35%', 'bottom': '1%',
+                              'left': '20%', 'font-size':'12px', 'height': '40px'}
+                        , className='country_multi_dropdown'),
+            html.Div([
+                    dcc.Graph(id='line-chart'),
+            ], style={'position': 'relative', 'width': '55%', 'height': '400', 'float': 'left',
+                      'left': '2%', 'bottom': '1%', 'opacity':'100%'}, className='line_chart_div')
+
         ], style={'position': 'relative', 'width': '100%', 'left': '0%', 'bottom': '0px', 'marginTop': 1000}, className='bot_div')
         #BOT OF MID
 
-    ], style={'position': 'absolute', 'width': '100%',})
+    ], style={'position': 'absolute', 'width': '100%'})
 ], style={'textAlign': 'center'})
 
 
@@ -127,6 +147,32 @@ def stackedbar(country):
     fig.update_layout({'margin': dict(t=0, l=0, r=0, b=10), 'font_color': '#363535' ,
                                    'paper_bgcolor': 'rgba(0,0,0,0)', 'plot_bgcolor': 'rgba(0,0,0,0)'})
     return fig
+
+@app.callback(
+    [Output("line-chart", "figure"),
+     Output("line-alert", "displayed")],
+    Input("multi-dropdown", "value")
+)
+def stackedbar(country):
+    if len(country) <=5:
+        fig = px.line(df_c[df_c.Entity.isin(country)],
+                      x="Year",
+                      y="Energy per capita (kWh)",
+                      color='Entity')
+        fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
+        fig = fig.update_layout({'margin': dict(t=0, l=0, r=0, b=10), 'font_color': '#363535',
+                                 'paper_bgcolor': 'rgba(0,0,0,0)', 'plot_bgcolor': 'rgba(0,0,0,0)'})
+        return fig, False
+    else:
+        fig = px.line(df_c[df_c.Entity.isin(country[0:5])],
+                      x="Year",
+                      y="Energy per capita (kWh)",
+                      color='Entity')
+        fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
+        fig.update_layout({'margin': dict(t=0, l=0, r=0, b=10), 'font_color': '#363535',
+                                 'paper_bgcolor': 'rgba(0,0,0,0)', 'plot_bgcolor': 'rgba(0,0,0,0)'})
+        return fig, True
+
 
 server = app.server
 

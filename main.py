@@ -4,7 +4,7 @@ import pandas as pd
 from urllib.request import urlopen
 import urllib.request, json
 
-path_datasets = 'https://raw.githubusercontent.com/elumbamarco/on-energy-consumption/master/datasets/'
+path_datasets = 'https://raw.githubusercontent.com/marcoelumba/on-energy-consumption/master/datasets/'
 
 with urllib.request.urlopen(path_datasets + 'countries.geojson') as url:
     data_geo = json.loads(url.read().decode())

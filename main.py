@@ -114,9 +114,9 @@ app.layout = html.Div([
                                     id="multi-dropdown",
                                     options=[{'label': i, 'value': i} for i in df_c.Country.unique()],
                                     value=['Portugal','Singapore','China','India'],
-                                    multi=True, searchable=True
+                                    multi=True
                                 )
-                            ], style={'position': 'relative', 'width': '35%', 'bottom': '1%',
+                            ], style={'position': 'relative', 'width': '45%', 'bottom': '1%',
                                       'left': '66%', 'font-size':'12px', 'height': '40px'}
                                 , className='country_multi_dropdown'),
                 # Left Bottom

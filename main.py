@@ -7,18 +7,11 @@ import urllib.request, json
 
 path_datasets = 'https://raw.githubusercontent.com/marcoelumba/on-energy-consumption/master/datasets/'
 
-with urllib.request.urlopen(path_datasets + 'countries.geojson') as url:
-    data_geo = json.loads(url.read().decode())
-
 # Data Connections
 df = pd.read_csv(path_datasets + 'global-energy-usage.csv')
 df_e = pd.read_csv(path_datasets + 'fossilfueldata.csv')
 df_c = pd.read_csv(path_datasets + 'per-capita-energy-use.csv')
-
-# Calling country name
-for feature in data_geo['features']:
-    feature['id'] = feature['properties']['ADMIN']
-
+df_x = pd.read_csv(path_datasets + 'annual-change-fossil-fuels.csv')
 
 # Filter lists
 continent_list = np.concatenate((df.Continent.unique(), 'World'), axis=None)
@@ -40,6 +33,7 @@ app = Dash(__name__)
 app.layout = html.Div([
 
     html.H1("Global Fossil Fuel Consumption (2020)", style={'font-family':'Arial, Helvetica, sans-serif'}),
+    html.P("Source: Statistical Review of World Energy BP", style={'font-family':'Arial, Helvetica, sans-serif', 'font-size': '10px', 'color' : '#989898'}),
     html.Div([
         #TOP
         html.Div([
@@ -63,10 +57,10 @@ app.layout = html.Div([
                     ], style={'position': 'absolute', 'right': '2%', 'font-size':'12px', 'float': 'right',
                               'paper_bgcolor': 'rgba(0,0,0,0)', 'plot_bgcolor': 'rgba(0,0,0,0)', 'opacity':'100%'},
                 className='map'),
-            #], style={'position': 'relative', 'width': '80%', 'top': '0px','right': '5%','float': 'right'}, className='top_right')
+
 
             html.Div([
-                #html.P('Select Continent', style={'font-size': 'small', 'right': '5%', 'opacity': '100%','font-family':'Arial, Helvetica, sans-serif'}),
+
                 dcc.Dropdown(
                     id="continent-dropdown",
                     options=[{'label': i, 'value': i} for i in sorted(continent_list)],
@@ -87,27 +81,28 @@ app.layout = html.Div([
                           'opacity':'100%'}, className='bar_chart'),
                 html.Br(),html.Br(),
                 html.Div([
-                #html.P(html.Br(), 'Select Country', style={'font-size': 'small', 'right': '5%', 'opacity': '100%', 'font-family': 'Arial, Helvetica, sans-serif'}),
                 dcc.Dropdown(
                     id="country-dropdown",
                     options=[{'label': i, 'value': i} for i in sorted(Country)],
                     value='Portugal', searchable=True
                 ) ], style={'position': 'relative', 'width': '20%', 'left': '73%', 'font-size': '12px', 'opacity': '100%'}
                     , className='country_dropdown'),
-            ], style={'position': 'relative', 'width': '60%', 'left': '0%', 'font-size': '12px', 'opacity': '100%'}
+            ], style={'position': 'relative', 'width': '60%', 'left': '0%', 'font-size': '12px', 'opacity': '100%' ,'float': 'left'}
                     , className='mid_left'),
 
             html.Div([
                     dcc.Graph(figure=fig_sunburst),
-            ], style={'position': 'relative','width': '40%', 'top': '0px',
+            ], style={'position': 'relative','width': '40%',
                       'right': '1%', 'opacity':'100%' ,'float': 'right'}, className='sun_burst')
 
-        ], style={'position': 'absolute', 'width': '100%', 'height': '520', 'marginTop': 510,
+        ], style={'position': 'absolute', 'width': '100%', 'height': '520', 'marginTop': 520,
                   'font-family':'Arial, Helvetica, sans-serif'}, className='mid_div'),
         #END OF MID
         html.Div([
                     dcc.ConfirmDialog(id='line-alert',
-                                      message="Country selected should  not be greater then 5. \n Please remove the 6th and + country in the list.")
+                                      message="Line Chart: Country selected should  not be greater then 5. \n Please remove the 6th and + country in the list."),
+                    dcc.ConfirmDialog(id='bar-alert',
+                                      message="Bar Chart: Country selected should  not be greater then 5. \n Please remove the 6th and + country in the list.")
                 ]),
         #BOT
         html.Div([
@@ -117,30 +112,45 @@ app.layout = html.Div([
                 html.Div([
                         dcc.Dropdown(
                                     id="multi-dropdown",
-                                    options=[{'label': i, 'value': i} for i in df_c.Entity.unique()],
+                                    options=[{'label': i, 'value': i} for i in df_c.Country.unique()],
                                     value=['Portugal','Singapore','China','India'],
                                     multi=True, searchable=True
                                 )
                             ], style={'position': 'relative', 'width': '35%', 'bottom': '1%',
-                                      'left': '20%', 'font-size':'12px', 'height': '40px'}
+                                      'left': '66%', 'font-size':'12px', 'height': '40px'}
                                 , className='country_multi_dropdown'),
                 # Left Bottom
                 html.Div([
                         dcc.Graph(id='line-chart'),
-                        ], style={'position': 'relative', 'width': '55%', 'height': '400', 'float': 'left',
+                        ], style={'position': 'relative', 'width': '100%','height': '400', 'float': 'left',
                                 'left': '2%', 'bottom': '1%', 'opacity':'100%'}, className='line_chart_div')
-            ], style={'position': 'relative', 'width': '100%', 'height': '400', 'float': 'left' , 'opacity':'100%', 'font-family':'Arial, Helvetica, sans-serif'}, className='left-div'),
-            # BOTTOM RIGHT
+            ], style={'position': 'relative', 'width': '55%', 'height': '400', 'float': 'left' , 'opacity':'100%', 'font-family':'Arial, Helvetica, sans-serif'}, className='left-div'),
+            # BOTTOM Right
             html.Div([
-                #html.Label('Select Countries [Max 5]:'),
-            ], style={'position': 'relative', 'height': '400', 'float': 'right', 'font-family':'Arial, Helvetica, sans-serif'}, className='right-div')
+                # Right Top
+                html.Div([
+                        dcc.Dropdown(
+                                        id="bmulti-dropdown",
+                                        options=[{'label': i, 'value': i} for i in df_x.Country.unique()],
+                                        value=['Portugal','Singapore','China','India','United States'],
+                                        multi=True, searchable=True
+                                    )
+                                ], style={'position': 'relative', 'width': '60%', 'bottom': '1%', 'float': 'right',
+                                          'right': '8%', 'font-size':'12px', 'height': '40px'}
+                                    , className='country_bmulti_dropdown'),
+                # Right Bottom
+                html.Div([
+                    dcc.Graph(id='hbar-chart'),
+                            ], style={'position': 'relative',  'height': '400', 'float': 'right',
+                                        'right': '5%', 'bottom': '1%', 'opacity': '100%'}, className='hbar_chart_div')
 
+                ], style={'position': 'relative', 'height': '400', 'float': 'right', 'width': '45%',
+                          'font-family':'Arial, Helvetica, sans-serif'}, className='bright-div')
         ], style={'position': 'relative', 'width': '100%',
-                  'left': '0%', 'bottom': '0px', 'marginTop': 1000},
+                  'left': '0%', 'marginTop': 1010},
                     className='bot_div')
         #BOT OF MID
-
-    ], style={'position': 'absolute', 'width': '100%'})
+    ], style={'position': 'absolute', 'width': '100%'}),
 ], style={'textAlign': 'center'})
 
 
@@ -156,14 +166,13 @@ def world_map(continent):
 
     fig = px.choropleth(
         df_map,
-        #geojson= data_geo,
         locations='iso_alpha',
         color='Usage',
         hover_name='Country',
         color_continuous_scale="YlOrRd",
         animation_frame='Year',
         featureidkey="properties.ISO_A3",
-        projection="equirectangular",#"wagner6",
+        projection="equirectangular",
         height=500,
         width=1300)
     fig.update_layout(legend=dict(orientation="v", yanchor="bottom", y=1.02, xanchor="right", x=3)
@@ -211,28 +220,58 @@ def stackedbar(country):
 )
 def linechart(country):
     if len(country) <=5:
-        fig = px.line(df_c[df_c.Entity.isin(country)],
+        fig = px.line(df_c[df_c.Country.isin(country)],
                       x="Year",
                       y="Energy per capita (kWh)",
-                      color='Entity',
+                      color='Country',
                       markers=True,
                       title='Fossil fuel consumption per capita<br><sup>Fossil fuel consumption per capita is measured as the average consumption of energy from coal, oil and gas per person</sup>')
         fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.15, xanchor="right", x=1))
-        fig = fig.update_layout({'margin': dict(t=110, l=0, r=0, b=10), 'font_color': '#363535',
+        fig = fig.update_layout({'margin': dict(t=80, l=0, r=0, b=10), 'font_color': '#363535',
                                  'paper_bgcolor': 'rgba(0,0,0,0)', 'plot_bgcolor': 'rgba(0,0,0,0)'})
         return fig, False
     else:
-        fig = px.line(df_c[df_c.Entity.isin(country[0:5])],
+        fig = px.line(df_c[df_c.Country.isin(country[0:5])],
                       x="Year",
                       y="Energy per capita (kWh)",
-                      color='Entity',
+                      color='Country',
                       markers=True,
                       title='Fossil fuel consumption per capita<br><sup>Fossil fuel consumption per capita is measured as the average consumption of energy from coal, oil and gas per person</sup>')
-        fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.15, xanchor="right", x=1))
+        fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.15, xanchor="right", x=1, title='Country'))
         fig.update_layout({'margin': dict(t=50, l=0, r=0, b=10), 'font_color': '#363535',
                                  'paper_bgcolor': 'rgba(0,0,0,0)', 'plot_bgcolor': 'rgba(0,0,0,0)'})
         return fig, True
 
+@app.callback(
+    [Output("hbar-chart", "figure"),
+     Output("bar-alert", "displayed")],
+    Input("bmulti-dropdown", "value")
+)
+def hbarchart(country):
+    if len(country) <=5:
+        fig = px.bar(df_x[df_x.Country.isin(country)],
+                     x="Consumption Change (TW)",
+                     y="Country",
+                      hover_name='Country',
+                      color='Country',
+                      animation_frame='Year',
+                      title='Fossil fuel consumption change<br><sup>Fossil fuel consumption change is measured as the average consumption in terawatts</sup>')
+        fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.15, xanchor="right", x=1))
+        fig = fig.update_layout({'margin': dict(t=40, l=0, r=0, b=10), 'font_color': '#363535',
+                                 'paper_bgcolor': 'rgba(0,0,0,0)', 'plot_bgcolor': 'rgba(0,0,0,0)'})
+        return fig, False
+    else:
+        fig = px.bar(df_x[df_x.Country.isin(country[0:5])],
+                     x="Consumption Change (TW)",
+                     y="Country",
+                      hover_name='Country',
+                      color='Country',
+                      animation_frame='Year',
+                      title='Fossil fuel consumption change<br><sup>Fossil fuel consumption change is measured as the average consumption in terawatts</sup>')
+        fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.15, xanchor="right", x=1))
+        fig = fig.update_layout({'margin': dict(t=40, l=0, r=0, b=10), 'font_color': '#363535',
+                                 'paper_bgcolor': 'rgba(0,0,0,0)', 'plot_bgcolor': 'rgba(0,0,0,0)'})
+        return fig, True
 
 server = app.server
 

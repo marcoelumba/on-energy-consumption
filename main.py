@@ -33,8 +33,7 @@ app = Dash(__name__)
 app.layout = html.Div([
 
     html.H1("Global Fossil Fuel Consumption (2020)", style={'font-family':'Arial, Helvetica, sans-serif'}),
-    html.P("Source: Statistical Review of World Energy BP (This dashboard project is presented by: Marco E. [m20210982])", 
-           style={'font-family':'Arial, Helvetica, sans-serif', 'font-size': '10px', 'color' : '#989898'}),
+    html.P("Source: Statistical Review of World Energy BP (This dashboard project is presented by: Marco E. [m20210982])", style={'font-family':'Arial, Helvetica, sans-serif', 'font-size': '10px', 'color' : '#989898'}),
     html.Div([
         #TOP
         html.Div([

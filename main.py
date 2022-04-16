@@ -225,7 +225,7 @@ def linechart(country):
                       y="Energy per capita (kWh)",
                       color='Country',
                       markers=True,
-                      title='Fossil fuel consumption per capita<br><sup>Fossil fuel consumption per capita is measured as the average consumption of energy from coal, oil and gas per person</sup>')
+                      title='Energy consumption per capita<br><sup>All types of energy consumption per capita is measured as the average consumption of energy</sup>')
         fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.15, xanchor="right", x=1))
         fig = fig.update_layout({'margin': dict(t=80, l=0, r=0, b=10), 'font_color': '#363535',
                                  'paper_bgcolor': 'rgba(0,0,0,0)', 'plot_bgcolor': 'rgba(0,0,0,0)'})

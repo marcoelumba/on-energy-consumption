@@ -20,7 +20,7 @@ Country = df.Country.unique()
 
 fig_sunburst = px.sunburst(df_e[(df_e["Category"].str.contains("Consumption")) & (df_e["Usage"] > 0.0) & (df_e["Year"] == 2020)],
                   path=['FossilType', 'Continent', 'Country'],
-                  title="Share of fossil fuel usage per continent<br><sup>Share of consumption is measured in exajoules and grouped per fossil fuel type then continent</sup>",
+                  title="Share of fossil fuel usage per continent in 2020<br><sup>Share of consumption is measured in exajoules and grouped per fossil fuel type then continent</sup>",
                   values='Usage', color_discrete_map={'Oil Consumption': 'rgb(99, 110, 250)',
                                      'Gas Consumption': 'rgb(0, 204, 150)',
                                      'Coal Consumption': 'rgb(239, 85, 59)'})

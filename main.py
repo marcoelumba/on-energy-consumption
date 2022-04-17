@@ -114,13 +114,14 @@ app.layout = html.Div([
                         dcc.Dropdown(
                                     id="multi-dropdown",
                                     options=[{'label': i, 'value': i} for i in df_c.Country.unique()],
-                                    value=['Portugal','Singapore','China','India'],
+                                    value=['Portugal','Singapore','China','India','United States'],
                                     multi=True
                                 )
                             ], style={'position': 'relative', 'width': '45%', 'bottom': '1%', 'left': '60%', 
-                                       'font-size':'12px', 'height': '40px'}
+                                       'font-size':'12px'}
                                 , className='country_multi_dropdown'),
                 # Left Bottom
+                html.Br(),
                 html.Div([
                         dcc.Graph(id='line-chart'),
                         ], style={'position': 'relative', 'width': '100%','height': '400', 'float': 'left',
@@ -130,17 +131,18 @@ app.layout = html.Div([
             html.Div([
                 # Right Top
                 html.Div([
-                       html.Label(['Please select max 5 countries:'], style={'font-weight': 'bold', "text-align": "left", 'float': 'left'}),
+                       html.Label(['Please select max 5 countries:'], style={'font-weight': 'bold', "text-align": "left"}),
                         dcc.Dropdown(
                                         id="bmulti-dropdown",
                                         options=[{'label': i, 'value': i} for i in df_x.Country.unique()],
                                         value=['Portugal','Singapore','China','India','United States'],
                                         multi=True, searchable=True
                                     )
-                                ], style={'position': 'relative', 'width': '60%', 'bottom': '1%', 'float': 'right',
-                                          'right': '8%', 'font-size':'12px', 'height': '40px'}
+                                ], style={'position': 'relative', 'width': '60%', 'bottom': '1%',
+                                          'right': '8%', 'font-size':'12px'}
                                     , className='country_bmulti_dropdown'),
                 # Right Bottom
+                html.Br(),
                 html.Div([
                     dcc.Graph(id='hbar-chart'),
                             ], style={'position': 'relative',  'height': '400', 'float': 'right',

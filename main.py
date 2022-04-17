@@ -110,6 +110,7 @@ app.layout = html.Div([
             html.Div([
                 # Left Top
                 html.Div([
+                        html.Label(['Please select max 5 countries:'], style={'font-weight': 'bold', "text-align": "center"}),
                         dcc.Dropdown(
                                     id="multi-dropdown",
                                     options=[{'label': i, 'value': i} for i in df_c.Country.unique()],
@@ -129,7 +130,7 @@ app.layout = html.Div([
             html.Div([
                 # Right Top
                 html.Div([
-                      "Please select max 5 countries:",
+                       html.Label(['Please select max 5 countries:'], style={'font-weight': 'bold', "text-align": "center"}),
                         dcc.Dropdown(
                                         id="bmulti-dropdown",
                                         options=[{'label': i, 'value': i} for i in df_x.Country.unique()],

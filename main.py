@@ -129,6 +129,7 @@ app.layout = html.Div([
             html.Div([
                 # Right Top
                 html.Div([
+                      "Please select max 5 countries:",
                         dcc.Dropdown(
                                         id="bmulti-dropdown",
                                         options=[{'label': i, 'value': i} for i in df_x.Country.unique()],

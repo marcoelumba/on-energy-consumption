@@ -117,7 +117,7 @@ app.layout = html.Div([
                                     value=['Portugal','Singapore','China','India','United States'],
                                     multi=True
                                 )
-                            ], style={'position': 'relative', 'width': '45%', 'bottom': '1%', 'left': '60%', 
+                            ], style={'position': 'relative', 'width': '50%', 'bottom': '1%', 'left': '60%', 
                                        'font-size':'12px'}
                                 , className='country_multi_dropdown'),
                 # Left Bottom
